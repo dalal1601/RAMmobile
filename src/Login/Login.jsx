@@ -102,7 +102,7 @@ export default function Loginch() {
 
   return (
     <View style={styles.container}>
-      <Image source={require("../../assets/image.png")} style={styles.logo} />
+      <Image source={require("../../assets/user.jpg")} style={styles.logo} />
       <Text style={styles.title}>Bienvenue à Votre Application</Text>
 
       <View style={styles.inputContainer}>

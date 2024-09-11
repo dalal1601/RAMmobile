@@ -6,7 +6,11 @@ import { useTheme } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import { Appearance } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import DropDownPicker from 'react-native-dropdown-picker';
+
 import { IconButton, Button, Checkbox } from 'react-native-paper';
+
 const StyledTableCell = ({ children }) => (
     <View style={styles.tableCell}>
         <Text style={styles.tableCellText}>{children}</Text>
@@ -201,6 +205,65 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: 4,
     },
+    sectionHeader: {
+        backgroundColor: '#f0f0f0',
+    },
+    sectionText: {
+        fontWeight: 'bold',
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 5,   // Add some padding
+        margin: 5,
+    },
+    regleCell: {
+        flex: 1,
+        flexWrap: 'wrap', // Ensures text wraps if too long
+    },
+    regleText: {
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    checkboxLabel: {
+        fontSize: 16,           // Slightly larger font for better visibility
+        color: '#333',
+        marginLeft: 5,         // Darker color for text
+    },
+    checkbox: {
+        borderWidth: 1,         // Add border to make checkbox more visible
+        borderColor: '#ccc',    // Light border color
+        width: 24,              // Fixed width for checkbox
+        height: 24,             // Fixed height for checkbox
+        marginRight: 5,         // Space between checkbox and label
+    },
+    pickerContainer: {
+        justifyContent: 'center',
+        flex: 1,
+    },
+    picker: {
+        height: 50,
+        width: '100%',
+    },
+    textInput: {
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 4,
+        padding: 8,
+        marginBottom: 8,
+    },
+    saveButton: {
+        backgroundColor: '#C2002F',
+        marginBottom: 8,
+    },
+    sendButton: {
+        backgroundColor: '#4CAF50',
+    },
+    finishedText: {
+        textAlign: 'center',
+        color: 'gray',
+    },
+
 });
 
 const InitialPopup = ({ open, onClose }) => {
@@ -213,6 +276,7 @@ const InitialPopup = ({ open, onClose }) => {
 
     const route = useRoute();
     const auditId = route.params?.auditId;
+    
 
 
     const handleSubmit = async () => {
@@ -246,7 +310,7 @@ const InitialPopup = ({ open, onClose }) => {
         }
     };
 
-    return (
+    /*return (
         <Modal
             transparent={true}
             visible={open}
@@ -309,7 +373,7 @@ const InitialPopup = ({ open, onClose }) => {
                 </View>
             </View>
         </Modal>
-    );
+    );*/
 };
 
 const ConfirmationDialog = ({ open, onClose, onConfirm, formulaire, checkedItems, existingReponses = {} }) => {
@@ -454,7 +518,13 @@ const Reponse = () => {
             console.error('Error loading existing generalities:', error);
         }
     };
+    const [open, setOpen] = useState(false);
 
+    const [items, setItems] = useState([
+        { label: '1', value: 1 },
+        { label: '2', value: 2 },
+        { label: '3', value: 3 },
+    ]);
     const handleSaveGeneralities = async () => {
         setIsSubmitting(true);
         try {
@@ -941,6 +1011,14 @@ const Reponse = () => {
             }));
         }
     };
+    const [selectedCategories, setSelectedCategories] = useState({});
+
+    const handleCategoryChange = (regleId, value) => {
+        setSelectedCategories(prevState => ({
+            ...prevState,
+            [regleId]: value,
+        }));
+    };
 
     if (loading) {
         return (
@@ -970,7 +1048,7 @@ const Reponse = () => {
 
             <View style={styles.headerContainer}>
                 <Text style={[styles.headerText, { color: '#C2002F' }]}>
-                    AUDIT DE TERRAIN {'\n'} OPÉRATIONNEL
+                {'\n'}  AUDIT DE TERRAIN {'\n'} OPÉRATIONNEL
                 </Text>
             </View>
 
@@ -1092,17 +1170,21 @@ const Reponse = () => {
                                 value={item.fullName}
                                 onChangeText={(text) => handleChange(index, 'fullName', text)}
                                 editable={!item.isSaved}
+                                placeholder="FullName"
                             />
                             <TextInput
                                 style={styles.textInput}
                                 value={item.title}
                                 onChangeText={(text) => handleChange(index, 'title', text)}
                                 editable={!item.isSaved}
+                                placeholder="Title"
+
                             />
                         </View>
                     )}
                 />
             </View>
+
 
             <View style={styles.buttonContainer}>
                 <Button
@@ -1120,13 +1202,12 @@ const Reponse = () => {
                 <DataTable.Header>
                     <DataTable.Title>Sections</DataTable.Title>
                     <DataTable.Title>Règles</DataTable.Title>
-                    <DataTable.Title>Conforme</DataTable.Title>
-                    <DataTable.Title>Non-Conforme</DataTable.Title>
-                    <DataTable.Title>Observation</DataTable.Title>
-                    <DataTable.Title>Amélioration</DataTable.Title>
-                    <DataTable.Title>Niveau</DataTable.Title>
-                    <DataTable.Title>Commentaire</DataTable.Title>
+                    <DataTable.Title>C</DataTable.Title>
+                    <DataTable.Title>NC</DataTable.Title>
+                    <DataTable.Title>Obs</DataTable.Title>
+                    <DataTable.Title>Am</DataTable.Title>
                 </DataTable.Header>
+
                 {formulaire.sectionList.map((section, sectionIndex) => (
                     <React.Fragment key={sectionIndex}>
                         <DataTable.Row>
@@ -1134,53 +1215,91 @@ const Reponse = () => {
                                 <Text style={styles.sectionText}>{section.description}</Text>
                             </DataTable.Cell>
                         </DataTable.Row>
+
                         {section.regles.map((regle, regleIndex) => (
-                            <DataTable.Row key={regleIndex}>
-                                <DataTable.Cell></DataTable.Cell>
-                                <DataTable.Cell>{regle.description}</DataTable.Cell>
-                                {['CONFORME', 'NON_CONFORME', 'OBSERVATION', 'AMELIORATION'].map((value) => (
-                                    <DataTable.Cell key={value}>
-                                        <View style={styles.checkboxContainer}>
-                                            <Checkbox
-                                                status={checkedItems[regle.id]?.value === value ? 'checked' : 'unchecked'}
-                                                onPress={() => handleCheckboxChange(regle.id, value)}
-                                                disabled={!isEditable || isSubmitting}
-                                                color={
-                                                    value === 'CONFORME' ? 'green' :
-                                                        value === 'NON_CONFORME' ? 'red' :
-                                                            value === 'OBSERVATION' ? 'blue' : 'orange'
-                                                }
+                            <React.Fragment key={regleIndex}>
+                                {/* Row with Règle description, it wraps onto multiple lines */}
+                                <DataTable.Row>
+                                    <DataTable.Cell></DataTable.Cell>
+                                    <DataTable.Cell style={styles.regleCell}>
+                                        <Text style={styles.regleText}>{regle.description}</Text>
+                                    </DataTable.Cell>
+                                </DataTable.Row>
+
+                                {/* Row with checkboxes */}
+                                <DataTable.Row>
+                                    <DataTable.Cell></DataTable.Cell>
+                                    {['CONFORME', 'NON_CONFORME', 'OBSERVATION', 'AMELIORATION'].map((value, index) => (
+                                        <DataTable.Cell key={value}>
+                                            <View style={styles.checkboxContainer}>
+                                                <Checkbox.Android
+                                                    status={checkedItems[regle.id]?.value === value ? 'checked' : 'unchecked'}
+                                                    onPress={() => handleCheckboxChange(regle.id, value)}
+                                                    disabled={!isEditable || isSubmitting}
+                                                    color={
+                                                        value === 'CONFORME' ? 'green' :
+                                                            value === 'NON_CONFORME' ? 'red' :
+                                                                value === 'OBSERVATION' ? 'blue' : 'orange'
+                                                    }
+                                                />
+                                                <Text style={styles.checkboxLabel}>{["C", "NC", "Obs", "Am"][index]}</Text>
+                                            </View>
+                                        </DataTable.Cell>
+                                    ))}
+                                </DataTable.Row>
+
+                                {/* Row with Picker and Commentaire */}
+                                <DataTable.Row>
+                                    <DataTable.Cell></DataTable.Cell>
+                                    <DataTable.Cell colSpan={4} style={styles.cell}>
+                                        <View style={styles.pickerContainer}>
+                                            <DropDownPicker
+                                                open={open}
+                                                value={checkedItems[regle.id]?.nonConformeLevel || null}  // selected value
+                                                items={[
+                                                    { label: '1', value: 1 },
+                                                    { label: '2', value: 2 },
+                                                    { label: '3', value: 3 },
+                                                ]}
+                                                setOpen={setOpen}  // state handler for dropdown open/close
+                                                setValue={(callback) => {
+                                                    const selectedValue = callback();
+                                                    handleNonConformeLevelChange(regle.id, selectedValue); // call the handler
+                                                    setValue(selectedValue);
+                                                }}
+                                                setItems={setItems}  // state handler for items if you want to update the options
+                                                style={styles.picker}  // apply your custom styles
+                                                placeholder="Select"
+                                                disabled={!isSubmitting && isEditable && checkedItems[regle.id]?.value !== 'NON_CONFORME'}  // enable/disable condition
                                             />
-                                            <Text>{value.replace('_', ' ')}</Text>
                                         </View>
                                     </DataTable.Cell>
-                                ))}
-                                <DataTable.Cell>
-                                    <TextInput
-                                        style={styles.textInput}
-                                        value={checkedItems[regle.id]?.nonConformeLevel || ''}
-                                        onChangeText={(text) => handleNonConformeLevelChange(regle.id, text)}
-                                        editable={!isEditable || isSubmitting || checkedItems[regle.id]?.value !== 'NON_CONFORME'}
-                                        keyboardType='numeric'
-                                        placeholder='Level'
-                                    />
-                                </DataTable.Cell>
-                                <DataTable.Cell>
-                                    <TextInput
-                                        style={styles.textInput}
-                                        multiline
-                                        numberOfLines={2}
-                                        value={checkedItems[regle.id]?.commentaire || ''}
-                                        onChangeText={(text) => handleCommentChange(regle.id, text)}
-                                        editable={!isEditable || isSubmitting}
-                                        placeholder='Commentaire'
-                                    />
-                                </DataTable.Cell>
-                            </DataTable.Row>
+                                    <DataTable.Cell colSpan={4} style={styles.cell}>
+                                        <TextInput
+                                            style={styles.textInput}
+                                            multiline
+                                            numberOfLines={2}
+                                            value={checkedItems[regle.id]?.commentaire || ''}
+                                            onChangeText={(text) => handleCommentChange(regle.id, text)}
+                                            editable={isEditable && !isSubmitting} // Allow editing only when `isEditable` is true and `isSubmitting` is false
+                                            placeholder="Commentaire"
+                                        />
+                                    </DataTable.Cell>
+
+                                </DataTable.Row>
+                            </React.Fragment>
                         ))}
                     </React.Fragment>
                 ))}
             </DataTable>
+
+            {/* Legend */}
+            <View style={styles.legend}>
+                <Text>C: Conforme</Text>
+                <Text>NC: Non-Conforme</Text>
+                <Text>Obs: Observation</Text>
+                <Text>Am: Amélioration</Text>
+            </View>
 
             <View style={styles.buttonContainer}>
                 {isEditable ? (
@@ -1208,6 +1327,7 @@ const Reponse = () => {
                     </Text>
                 )}
             </View>
+
             <Modal visible={openConfirmDialog} onDismiss={() => setOpenConfirmDialog(false)}>
                 <View style={styles.dialogContent}>
                     <Text>Are you sure you want to save?</Text>
@@ -1215,6 +1335,7 @@ const Reponse = () => {
                     <Button onPress={() => setOpenConfirmDialog(false)}>Cancel</Button>
                 </View>
             </Modal>
+
             <Snackbar
                 visible={snackbar.open}
                 onDismiss={() => setSnackbar({ ...snackbar, open: false })}
@@ -1222,6 +1343,10 @@ const Reponse = () => {
             >
                 <Text>{snackbar.message}</Text>
             </Snackbar>
+
+
+
+
         </ScrollView>
 
 

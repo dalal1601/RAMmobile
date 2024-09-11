@@ -106,7 +106,7 @@ const UserAudits = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Audits à faire</Text>
+      <Text style={styles.title}> {'\n'}Audits à faire</Text>
       {audits.length > 0 ? (
         audits.map((audit) => {
           const isTodayAudit = isToday(audit.dateFin);
