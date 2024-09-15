@@ -65,7 +65,7 @@ const UserAudits = () => {
       try {
         if (!userId) return;
         const token = await AsyncStorage.getItem('authToken');
-        const response = await fetch(`http://192.168.8.106:8080/Audit/user/${userId}`, {
+        const response = await fetch(`http://172.20.10.3:8080/Audit/user/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
